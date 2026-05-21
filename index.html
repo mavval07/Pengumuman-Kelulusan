@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengumuman Kelulusan - UPT SMPN Benteng No. 1 Kepulauan Selayar</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        /* --- RESET & GLOBAL STYLES --- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary-color: #0056b3;
+            --primary-hover: #004085;
+            --bg-color: #fafbfc;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --text-light: #ffffff;
+            --border-color: #e2e8f0;
+            --success-color: #2f855a;
+            --success-bg: #f0fff4;
+            --error-color: #c53030;
+            --error-bg: #fff5f5;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            --radius: 12px;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            background-image: url('assets/bg.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 1.5rem 1rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+        header p { font-size: 0.95rem; opacity: 0.9; }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .main-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            width: 100%;
+            max-width: 500px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+           background-color: rgba(255, 255, 255, 0.90); 
+        }
+
+        .logo-wrapper { margin-bottom: 1rem; }
+        .school-logo { width: 90px; height: auto; max-height: 100px; color: var(--primary-color); object-fit: contain; margin-bottom: 0.5rem; }
+
+        .tab-navigation {
+            display: flex;
+            background-color: #f1f5f9;
+            padding: 0.35rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            gap: 0.25rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 0.6rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .tab-btn.active {
+            background-color: var(--card-bg);
+            color: var(--primary-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-panel { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-panel.active { display: block; }
+
+        .section-title { font-size: 1.35rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; }
+        .section-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.75rem; }
+
+        .form-group { text-align: left; margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; }
+
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-family: inherit;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: #f8fafc;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary-color);
+            background-color: var(--card-bg);
+            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 0.95rem;
+            display: none;
+        }
+
+        .result-box.success { display: block; background-color: var(--success-bg); border: 1px solid rgba(47, 133, 90, 0.2); color: var(--success-color); }
+        .result-box.error { display: block; background-color: var(--error-bg); border: 1px solid rgba(197, 48, 48, 0.2); color: var(--error-color); }
+        .result-box h4 { font-weight: 700; margin-bottom: 0.5rem; }
+        .result-details { margin-top: 0.5rem; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 0.5rem; font-size: 0.9rem; }
+        .result-details div { margin-bottom: 0.25rem; }
+
+        /* Tombol download/buka surat keterangan kelulusan */
+        .btn-action-surat {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.6rem 1rem;
+            background-color: #ffffff;
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .btn-action-surat:hover {
+            background-color: var(--success-color);
+            color: #ffffff;
+        }
+
+        .btn-logout {
+            margin-top: 1rem;
+            background-color: #fff5f5;
+            color: var(--error-color);
+            border: 1px solid rgba(197, 48, 48, 0.2);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* --- MODAL DIALOG STYLE --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-box { background-color: var(--card-bg); border-radius: var(--radius); width: 90%; max-width: 380px; padding: 2rem; position: relative; }
+        
+        /* Modifikasi Khusus Modal Konten Gambar Surat */
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 600px;
+            padding: 2.5rem 1.5rem 1.5rem 1.5rem;
+            position: relative;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modal-content img {
+            max-width: 100%;
+            height: auto;
+            max-height: 70vh;
+            object-fit: contain;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .modal-close { position: absolute; top: 0.75rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); line-height: 1; }
+        .modal-close:hover { color: var(--error-color); }
+        .login-error-msg { color: var(--error-color); font-size: 0.8rem; margin-bottom: 1rem; display: none; text-align: left; }
+
+        footer { background-color: #ffffff; border-top: 1px solid var(--border-color); padding: 1.5rem 1rem; text-align: center; font-size: 0.85rem; color: var(--text-muted); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>Sistem Informasi Kelulusan Siswa Digital</h2>
+    </header>
+
+    <main>
+        <div class="main-card">
+            <div class="logo-wrapper">
+                <img src="assets/logo.png" class="school-logo" alt="Logo Sekolah">
+                <h2 style="font-size: 1.25rem; margin-top: 0.5rem;">UPT SMPN Benteng No. 1 Kepulauan Selayar</h2>
+            </div>
+
+            <nav class="tab-navigation">
+                <button id="btnTabSiswa" class="tab-btn active" onclick="switchTab('siswa-panel')">Pencarian Siswa</button>
+                <button id="btnTabAdmin" class="tab-btn" onclick="triggerAdminAccess()">Konfigurasi Admin</button>
+            </nav>
+
+            <div id="siswa-panel" class="tab-panel active">
+                <h2 class="section-title">Cek Status Kelulusan</h2>
+                <p class="section-subtitle">Masukkan NISN atau Nomor Peserta Ujian Anda.</p>
+
+                <form id="searchForm" onsubmit="handleSearch(event)">
+                    <div class="form-group">
+                        <label for="searchQuery">NISN / Nomor Peserta Ujian</label>
+                        <input type="text" id="searchQuery" class="input-field" placeholder="Contoh: 0081234567 atau 21-26-73-00-000-000-0" required autocomplete="off">
+                    </div>
+                    <button type="submit" class="btn-primary">Cari Data Kelulusan</button>
+                </form>
+                <div id="resultBox" class="result-box"></div>
+            </div>
+
+            <div id="admin-panel" class="tab-panel">
+                <h2 class="section-title">Link Google Sheets</h2>
+                <p class="section-subtitle">Masukkan tautan CSV hasil publikasi Google Spreadsheet sekolah.</p>
+                
+                <form onsubmit="saveSheetUrl(event)">
+                    <div class="form-group">
+                        <label for="sheetUrlInput">URL Google Sheets (Format CSV)</label>
+                        <input type="url" id="sheetUrlInput" class="input-field" placeholder="https://docs.google.com/spreadsheets/.../pub?output=csv" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Simpan & Hubungkan Tautan</button>
+                </form>
+                <br>
+                <button class="btn-logout" onclick="logoutAdmin()">Keluar Admin</button>
+            </div>
+        </div>
+    </main>
+    
+
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+            <h3 class="section-title">Login Admin</h3>
+            <p class="section-subtitle">Masukkan kredensial sekolah.</p>
+            <form id="loginForm" onsubmit="handleAdminLogin(event)">
+                <div class="form-group"><label>Username</label><input type="text" id="adminUsername" class="input-field" required autocomplete="off"></div>
+                <div class="form-group"><label>Password</label><input type="password" id="adminPassword" class="input-field" required></div>
+                <div id="loginError" class="login-error-msg">Username atau password salah!</div>
+                <button type="submit" class="btn-primary">Masuk Sistem</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="imageModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <img src="assets/surat.jpg" alt="Surat Keterangan Kelulusan Resmi">
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 UPT SMPN Benteng No. 1 Kepulauan Selayar. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // Akun Admin Statis
+        const ADMIN_CREDENTIALS = { username: "admin", password: "smpn1btg2026" };
+        let isAdminLoggedIn = false;
+
+        // Default URL Cadangan jika lokal kosong
+        const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1zB5L_jS8f89c9z3/pub?output=csv"; 
+
+        function triggerAdminAccess() {
+            if (isAdminLoggedIn) { switchTab('admin-panel'); } 
+            else { document.getElementById('loginModal').classList.add('open'); }
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('open');
+            document.getElementById('loginForm').reset();
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        function handleAdminLogin(event) {
+            event.preventDefault();
+            if (document.getElementById('adminUsername').value.trim() === ADMIN_CREDENTIALS.username && 
+                document.getElementById('adminPassword').value === ADMIN_CREDENTIALS.password) {
+                isAdminLoggedIn = true;
+                closeLoginModal();
+                switchTab('admin-panel');
+                document.getElementById('sheetUrlInput').value = localStorage.getItem('googleSheetUrl') || DEFAULT_CSV_URL;
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        function logoutAdmin() { isAdminLoggedIn = false; switchTab('siswa-panel'); }
+
+        function switchTab(panelId) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            document.getElementById(panelId === 'siswa-panel' ? 'btnTabSiswa' : 'btnTabAdmin').classList.add('active');
+        }
+
+        function saveSheetUrl(event) {
+            event.preventDefault();
+            const url = document.getElementById('sheetUrlInput').value.trim();
+            localStorage.setItem('googleSheetUrl', url);
+            alert("Tautan Google Sheets berhasil disimpan! Sistem akan otomatis membaca data dari link ini.");
+            switchTab('siswa-panel');
+        }
+
+        // FUNGSI POPUP GAMBAR SURAT
+        //Lahirkan fungsi openModal & closeModal agar sinkron dengan interaksi tombol
+        function openModal() {
+            document.getElementById('imageModal').classList.add('open');
+            document.body.style.overflow = 'hidden'; // Mencegah scrolling halaman belakang
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('open');
+            document.body.style.overflow = ''; // Mengembalikan scrolling semula
+        }
+
+        // Menutup popup gambar jika pengguna menekan area luar gambar (overlay)
+        window.onclick = function(event) {
+            const imgModal = document.getElementById('imageModal');
+            const loginModal = document.getElementById('loginModal');
+            if (event.target === imgModal) { closeModal(); }
+            if (event.target === loginModal) { closeLoginModal(); }
+        }
+
+        // FUNGSI PENCARIAN REAL-TIME
+        function handleSearch(event) {
+            event.preventDefault();
+            const query = document.getElementById('searchQuery').value.trim().toLowerCase();
+            const resultBox = document.getElementById('resultBox');
+            
+            if (!query) return;
+
+            const targetCsvUrl = localStorage.getItem('googleSheetUrl') || DEFAULT_CSV_URL;
+
+            resultBox.className = "result-box success";
+            resultBox.style.display = "block";
+            resultBox.innerHTML = "<h4>Sedang menyinkronkan data dengan Google Sheets...</h4>";
+
+            Papa.parse(targetCsvUrl, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    const dataSiswa = results.data;
+                    
+                    const studentData = dataSiswa.find(student => {
+                        const nisnMatch = student.NISN ? String(student.NISN).toLowerCase().trim() === query : false;
+                        const noPesertaMatch = student.NoPeserta ? String(student.NoPeserta).toLowerCase().trim() === query : false;
+                        return nisnMatch || noPesertaMatch;
+                    });
+
+                    resultBox.className = "result-box";
+
+                    if (studentData) {
+                        const namaSiswa = studentData.Nama || studentData.nama || "-";
+                        const nisnSiswa = studentData.NISN || studentData.nisn || "-";
+                        const noPeserta = studentData.NoPeserta || studentData.nopeserta || "-";
+                        const statusKelulusan = studentData.Status || studentData.status || "LULUS";
+
+                        resultBox.classList.add("success");
+                        resultBox.innerHTML = `
+                            <h4>Selamat! Anda Dinyatakan ${statusKelulusan.toUpperCase()}</h4>
+                            <div class="result-details">
+                                <div><strong>Nama:</strong> ${namaSiswa}</div>
+                                <div><strong>NISN:</strong> ${nisnSiswa}</div>
+                                <div><strong>No. Peserta:</strong> ${noPeserta}</div>
+                            </div>
+                            <button class="btn-action-surat" onclick="openModal()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                                Baca Surat Ini !
+                            </button>
+                        `;
+                    } else {
+                        resultBox.classList.add("error");
+                        resultBox.innerHTML = `
+                            <h4>Data Tidak Ditemukan</h4>
+                            <p>Nomor tidak terdaftar. Pastikan entri benar atau hubungi panitia kelulusan sekolah.</p>
+                        `;
+                    }
+                },
+                error: function() {
+                    resultBox.className = "result-box error";
+                    resultBox.innerHTML = `
+                        <h4>Gagal Memuat Data</h4>
+                        <p>Sistem gagal terhubung ke Google Sheets. Pastikan link di panel konfigurasi admin sudah benar dan diset 'Publikasikan ke Web'.</p>
+                    `;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
