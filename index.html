@@ -73,7 +73,7 @@
             max-width: 500px;
             padding: 2.5rem 2rem;
             text-align: center;
-           background-color: rgba(255, 255, 255, 0.90); 
+            background-color: rgba(255, 255, 255, 0.90); 
         }
 
         .logo-wrapper { margin-bottom: 1rem; }
@@ -137,6 +137,30 @@
             box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
         }
 
+        /* Radio Selector untuk Pilihan Sumber Data */
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            background: #f8fafc;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .radio-option input {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
         .btn-primary {
             width: 100%;
             padding: 0.75rem 1rem;
@@ -170,7 +194,6 @@
         .result-details { margin-top: 0.5rem; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 0.5rem; font-size: 0.9rem; }
         .result-details div { margin-bottom: 0.25rem; }
 
-        /* Tombol download/buka surat keterangan kelulusan */
         .btn-action-surat {
             display: inline-flex;
             align-items: center;
@@ -219,7 +242,6 @@
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
         .modal-box { background-color: var(--card-bg); border-radius: var(--radius); width: 90%; max-width: 380px; padding: 2rem; position: relative; }
         
-        /* Modifikasi Khusus Modal Konten Gambar Surat */
         .modal-content {
             background-color: var(--card-bg);
             border-radius: var(--radius);
@@ -286,22 +308,36 @@
             </div>
 
             <div id="admin-panel" class="tab-panel">
-                <h2 class="section-title">Link Google Sheets</h2>
-                <p class="section-subtitle">Masukkan tautan CSV hasil publikasi Google Spreadsheet sekolah.</p>
+                <h2 class="section-title">Konfigurasi Database</h2>
+                <p class="section-subtitle">Pilih sumber data pengumuman kelulusan siswa.</p>
                 
-                <form onsubmit="saveSheetUrl(event)">
+                <form onsubmit="saveAdminConfig(event)">
                     <div class="form-group">
-                        <label for="sheetUrlInput">URL Google Sheets (Format CSV)</label>
-                        <input type="url" id="sheetUrlInput" class="input-field" placeholder="https://docs.google.com/spreadsheets/.../pub?output=csv" required>
+                        <label>Sumber Data Kelulusan</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="dbSource" value="local" id="radioLocal" onchange="toggleSourceFields()" checked>
+                                File CSV Lokal (data.csv)
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="dbSource" value="online" id="radioOnline" onchange="toggleSourceFields()">
+                                Link Google Sheets
+                            </label>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-primary">Simpan & Hubungkan Tautan</button>
+
+                    <div class="form-group" id="googleSheetsInputGroup" style="display: none;">
+                        <label for="sheetUrlInput">URL Google Sheets (Format CSV)</label>
+                        <input type="url" id="sheetUrlInput" class="input-field" placeholder="https://docs.google.com/spreadsheets/.../pub?output=csv">
+                    </div>
+
+                    <button type="submit" class="btn-primary">Simpan Konfigurasi</button>
                 </form>
                 <br>
                 <button class="btn-logout" onclick="logoutAdmin()">Keluar Admin</button>
             </div>
         </div>
     </main>
-    
 
     <div id="loginModal" class="modal-overlay">
         <div class="modal-box">
@@ -320,7 +356,7 @@
     <div id="imageModal" class="modal-overlay">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal()">&times;</button>
-            <img src="assets/surat.jpg" alt="Surat Keterangan Kelulusan Resmi">
+            <img src="assets/surat.jpeg" alt="Surat Keterangan Kelulusan Resmi">
         </div>
     </div>
 
@@ -329,16 +365,18 @@
     </footer>
 
     <script>
-        // Akun Admin Statis
         const ADMIN_CREDENTIALS = { username: "admin", password: "smpn1btg2026" };
         let isAdminLoggedIn = false;
 
-        // Default URL Cadangan jika lokal kosong
         const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1zB5L_jS8f89c9z3/pub?output=csv"; 
+        const LOCAL_CSV_FILE = "data.csv"; // Nama file csv lokal
 
         function triggerAdminAccess() {
-            if (isAdminLoggedIn) { switchTab('admin-panel'); } 
-            else { document.getElementById('loginModal').classList.add('open'); }
+            if (isAdminLoggedIn) { 
+                switchTab('admin-panel'); 
+            } else { 
+                document.getElementById('loginModal').classList.add('open'); 
+            }
         }
 
         function closeLoginModal() {
@@ -354,7 +392,16 @@
                 isAdminLoggedIn = true;
                 closeLoginModal();
                 switchTab('admin-panel');
+                
+                // Load konfigurasi tersimpan ke elemen form admin
+                const savedSource = localStorage.getItem('dbSource') || 'local';
+                if (savedSource === 'online') {
+                    document.getElementById('radioOnline').checked = true;
+                } else {
+                    document.getElementById('radioLocal').checked = true;
+                }
                 document.getElementById('sheetUrlInput').value = localStorage.getItem('googleSheetUrl') || DEFAULT_CSV_URL;
+                toggleSourceFields();
             } else {
                 document.getElementById('loginError').style.display = 'block';
             }
@@ -369,27 +416,45 @@
             document.getElementById(panelId === 'siswa-panel' ? 'btnTabSiswa' : 'btnTabAdmin').classList.add('active');
         }
 
-        function saveSheetUrl(event) {
+        // Menyembunyikan / Menampilkan input URL Google Sheets sesuai pilihan radio button
+        function toggleSourceFields() {
+            const isOnline = document.getElementById('radioOnline').checked;
+            const inputGroup = document.getElementById('googleSheetsInputGroup');
+            if (isOnline) {
+                inputGroup.style.display = 'block';
+                document.getElementById('sheetUrlInput').required = true;
+            } else {
+                inputGroup.style.display = 'none';
+                document.getElementById('sheetUrlInput').required = false;
+            }
+        }
+
+        // Menyimpan konfigurasi pilihan admin ke localStorage
+        function saveAdminConfig(event) {
             event.preventDefault();
-            const url = document.getElementById('sheetUrlInput').value.trim();
-            localStorage.setItem('googleSheetUrl', url);
-            alert("Tautan Google Sheets berhasil disimpan! Sistem akan otomatis membaca data dari link ini.");
+            const selectedSource = document.querySelector('input[name="dbSource"]:checked').value;
+            localStorage.setItem('dbSource', selectedSource);
+
+            if (selectedSource === 'online') {
+                const url = document.getElementById('sheetUrlInput').value.trim();
+                localStorage.setItem('googleSheetUrl', url);
+                alert("Konfigurasi disimpan! Sistem akan membaca data dari Tautan Google Sheets.");
+            } else {
+                alert("Konfigurasi disimpan! Sistem akan membaca file lokal 'data.csv'.");
+            }
             switchTab('siswa-panel');
         }
 
-        // FUNGSI POPUP GAMBAR SURAT
-        //Lahirkan fungsi openModal & closeModal agar sinkron dengan interaksi tombol
         function openModal() {
             document.getElementById('imageModal').classList.add('open');
-            document.body.style.overflow = 'hidden'; // Mencegah scrolling halaman belakang
+            document.body.style.overflow = 'hidden'; 
         }
 
         function closeModal() {
             document.getElementById('imageModal').classList.remove('open');
-            document.body.style.overflow = ''; // Mengembalikan scrolling semula
+            document.body.style.overflow = ''; 
         }
 
-        // Menutup popup gambar jika pengguna menekan area luar gambar (overlay)
         window.onclick = function(event) {
             const imgModal = document.getElementById('imageModal');
             const loginModal = document.getElementById('loginModal');
@@ -397,7 +462,7 @@
             if (event.target === loginModal) { closeLoginModal(); }
         }
 
-        // FUNGSI PENCARIAN REAL-TIME
+        // FUNGSI PENCARIAN ADAPTIF (LOKAL / GOOGLE SHEETS)
         function handleSearch(event) {
             event.preventDefault();
             const query = document.getElementById('searchQuery').value.trim().toLowerCase();
@@ -405,13 +470,21 @@
             
             if (!query) return;
 
-            const targetCsvUrl = localStorage.getItem('googleSheetUrl') || DEFAULT_CSV_URL;
+            // Memeriksa sumber data mana yang sedang aktif berdasarkan pilihan admin
+            const activeSource = localStorage.getItem('dbSource') || 'local';
+            let targetDataPath = LOCAL_CSV_FILE;
+            let loadingMessage = "<h4>Sedang memuat database lokal...</h4>";
+
+            if (activeSource === 'online') {
+                targetDataPath = localStorage.getItem('googleSheetUrl') || DEFAULT_CSV_URL;
+                loadingMessage = "<h4>Sedang menyinkronkan data dengan Google Sheets...</h4>";
+            }
 
             resultBox.className = "result-box success";
             resultBox.style.display = "block";
-            resultBox.innerHTML = "<h4>Sedang menyinkronkan data dengan database...</h4>";
+            resultBox.innerHTML = loadingMessage;
 
-            Papa.parse(targetCsvUrl, {
+            Papa.parse(targetDataPath, {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
@@ -455,10 +528,17 @@
                 },
                 error: function() {
                     resultBox.className = "result-box error";
-                    resultBox.innerHTML = `
-                        <h4>Gagal Memuat Data</h4>
-                        <p>Sistem gagal terhubung ke database. Pastikan link di panel konfigurasi admin sudah benar dan diset 'Publikasikan ke Web'.</p>
-                    `;
+                    if (activeSource === 'local') {
+                        resultBox.innerHTML = `
+                            <h4>Gagal Memuat Data</h4>
+                            <p>Sistem gagal membaca file lokal.</p>
+                        `;
+                    } else {
+                        resultBox.innerHTML = `
+                            <h4>Gagal Memuat Data</h4>
+                            <p>Sistem gagal terhubung ke Google Sheets. Pastikan link di panel konfigurasi admin sudah benar dan diset 'Publikasikan ke Web'.</p>
+                        `;
+                    }
                 }
             });
         }
